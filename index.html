@@ -22,6 +22,17 @@
                     <label for="break-duration">Short Break (minutes)</label>
                     <input type="number" id="break-duration" value="7" min="1" max="30">
                 </div>
+                <div class="settings-group">
+                    <label for="sound-type">Notification Sound</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <select id="sound-type" style="flex: 1; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--panel-border); border-radius: var(--radius-md); padding: 0.75rem; color: var(--text-primary); font-family: inherit;">
+                            <option value="chime" style="color: black;">Pleasant Chime</option>
+                            <option value="alarm" style="color: black;">Digital Alarm</option>
+                            <option value="beep" style="color: black;">Classic Beep</option>
+                        </select>
+                        <button id="test-sound-btn" class="btn default-btn" style="padding: 0 1rem;">Test</button>
+                    </div>
+                </div>
                 <button id="save-settings" class="btn primary-btn">Save</button>
             </div>
         </div>

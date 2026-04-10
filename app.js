@@ -9,6 +9,7 @@ class PomodoroApp {
         this.timerInterval = null;
         this.hasCheckedIn = false; // To track if we've shown the mid-session modal during this focus session
         this.tasks = JSON.parse(localStorage.getItem('pomodoroTasks')) || [];
+        this.soundType = localStorage.getItem('pomodoroSoundType') || 'chime';
 
         // DOM Elements
         this.timeDisplay = document.getElementById('time-left');
@@ -39,7 +40,12 @@ class PomodoroApp {
         this.newTaskInput = document.getElementById('new-task-input');
         this.focusInput = document.getElementById('focus-duration');
         this.breakInput = document.getElementById('break-duration');
+        this.soundTypeInput = document.getElementById('sound-type');
+        this.testSoundBtn = document.getElementById('test-sound-btn');
         this.taskListEl = document.getElementById('task-list');
+
+        // Initialize Settings Fields
+        this.soundTypeInput.value = this.soundType;
 
         // Setup Progress Ring
         this.circumference = 115 * 2 * Math.PI;
@@ -58,23 +64,65 @@ class PomodoroApp {
         this.attachEventListeners();
     }
 
-    playNotificationSound() {
+    playNotificationSound(overrideType = null) {
         if(this.audioContext.state === 'suspended') {
             this.audioContext.resume();
         }
-        const osc = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, this.audioContext.currentTime); // A5
-        osc.frequency.exponentialRampToValueAtTime(110, this.audioContext.currentTime + 0.5);
         
-        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
-        
-        osc.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        osc.start();
-        osc.stop(this.audioContext.currentTime + 0.5);
+        const type = overrideType || this.soundType;
+        const now = this.audioContext.currentTime;
+
+        if (type === 'chime') {
+             // Play pleasant multi-tone chord
+             [523.25, 659.25, 783.99].forEach((freq, idx) => { // C5, E5, G5
+                 const osc = this.audioContext.createOscillator();
+                 const gain = this.audioContext.createGain();
+                 osc.type = 'sine';
+                 osc.frequency.value = freq;
+                 
+                 gain.gain.setValueAtTime(0, now + (idx * 0.1));
+                 gain.gain.linearRampToValueAtTime(0.8, now + (idx * 0.1) + 0.05); // Louder
+                 gain.gain.exponentialRampToValueAtTime(0.01, now + (idx * 0.1) + 1.5); // Longer (1.5s total decay)
+                 
+                 osc.connect(gain);
+                 gain.connect(this.audioContext.destination);
+                 
+                 osc.start(now + (idx * 0.1));
+                 osc.stop(now + (idx * 0.1) + 1.5);
+             });
+        } else if (type === 'alarm') {
+             // Repeating energetic digital beep
+             for(let i=0; i<4; i++) {
+                 const osc = this.audioContext.createOscillator();
+                 const gain = this.audioContext.createGain();
+                 osc.type = 'square';
+                 osc.frequency.value = 880 + (i % 2 === 0 ? 0 : 200); // alternating frequencies
+                 
+                 gain.gain.setValueAtTime(0.4, now + (i * 0.25)); // Medium loud square wave
+                 gain.gain.setValueAtTime(0, now + (i * 0.25) + 0.15); // short burst
+                 
+                 osc.connect(gain);
+                 gain.connect(this.audioContext.destination);
+                 
+                 osc.start(now + (i * 0.25));
+                 osc.stop(now + (i * 0.25) + 0.15);
+             }
+        } else {
+             // Classic Beep (Louder and Longer than before)
+             const osc = this.audioContext.createOscillator();
+             const gainNode = this.audioContext.createGain();
+             osc.type = 'sine';
+             osc.frequency.setValueAtTime(880, now); // A5
+             osc.frequency.exponentialRampToValueAtTime(110, now + 1.0);
+             
+             gainNode.gain.setValueAtTime(1.0, now); // Max volume
+             gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0); // Longer 1.0s decay
+             
+             osc.connect(gainNode);
+             gainNode.connect(this.audioContext.destination);
+             osc.start(now);
+             osc.stop(now + 1.0);
+        }
     }
 
     attachEventListeners() {
@@ -86,6 +134,7 @@ class PomodoroApp {
         // Settings
         this.openSettingsBtn.addEventListener('click', () => this.settingsModal.classList.remove('hidden'));
         this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+        this.testSoundBtn.addEventListener('click', () => this.playNotificationSound(this.soundTypeInput.value));
         
         // Tasks
         this.addTaskBtn.addEventListener('click', () => this.addTask());
@@ -158,7 +207,11 @@ class PomodoroApp {
             if (this.timeLeft <= 0) {
                 this.pauseTimer();
                 this.playNotificationSound();
-                setTimeout(() => this.playNotificationSound(), 600); // double beep
+                
+                // Extra notification repeat if it's the classic short beep style, for added impact
+                if (this.soundType === 'beep') {
+                    setTimeout(() => this.playNotificationSound(), 1100); 
+                }
                 
                 if (this.mode === 'focus') {
                     this.switchMode('break');
@@ -225,10 +278,14 @@ class PomodoroApp {
     saveSettings() {
         const newFocusMins = parseInt(this.focusInput.value);
         const newBreakMins = parseInt(this.breakInput.value);
+        const newSoundType = this.soundTypeInput.value;
         
         if (newFocusMins > 0 && newBreakMins > 0) {
             this.focusDuration = newFocusMins * 60;
             this.breakDuration = newBreakMins * 60;
+            
+            this.soundType = newSoundType;
+            localStorage.setItem('pomodoroSoundType', this.soundType);
             
             this.resetTimer();
             this.settingsModal.classList.add('hidden');
