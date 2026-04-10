@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusFlow | Premium Pomodoro Timer</title>
+    <meta name="description" content="A beautiful and intelligent Pomodoro timer with task management and focus checks.">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Settings Modal (Initially Hidden) -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content glass-panel">
+                <h2>Settings</h2>
+                <div class="settings-group">
+                    <label for="focus-duration">Focus Session (minutes)</label>
+                    <input type="number" id="focus-duration" value="25" min="1" max="120">
+                </div>
+                <div class="settings-group">
+                    <label for="break-duration">Short Break (minutes)</label>
+                    <input type="number" id="break-duration" value="7" min="1" max="30">
+                </div>
+                <button id="save-settings" class="btn primary-btn">Save</button>
+            </div>
+        </div>
+
+        <!-- Focus Check Modal (Mid-session Prompt) -->
+        <div id="focus-prompt-modal" class="modal hidden">
+            <div class="modal-content glass-panel alert-panel">
+                <h2>Are you on track?</h2>
+                <p>You are halfway through your focus session. Stay focused!</p>
+                <div class="modal-actions">
+                    <button id="on-track-btn" class="btn success-btn">Yes, I'm focused!</button>
+                    <button id="not-on-track-btn" class="btn danger-btn">No, I got distracted</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Distraction Action Modal -->
+        <div id="distraction-modal" class="modal hidden">
+            <div class="modal-content glass-panel warning-panel">
+                <h2>Session Paused</h2>
+                <p>It's okay to lose focus. What would you like to do next?</p>
+                <div class="modal-actions">
+                    <button id="take-break-btn" class="btn secondary-btn">Take 7 min Break</button>
+                    <button id="restart-focus-btn" class="btn primary-btn">Restart Focus Session</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App UI -->
+        <header>
+            <h1>FocusFlow</h1>
+            <button id="open-settings" class="icon-btn" aria-label="Settings">⚙️</button>
+        </header>
+
+        <main>
+            <section class="timer-section glass-panel">
+                <div class="timer-display">
+                    <svg class="progress-ring" width="250" height="250">
+                        <circle class="progress-ring__circle_bg" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="transparent" r="115" cx="125" cy="125"/>
+                        <circle id="progress-ring-circle" class="progress-ring__circle" stroke="url(#gradient)" stroke-width="8" fill="transparent" r="115" cx="125" cy="125"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FF3366" />
+                                <stop offset="100%" stop-color="#FF9933" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="time-text">
+                        <span id="time-left">25:00</span>
+                        <span id="mode-label" class="mode-label">Focus</span>
+                    </div>
+                </div>
+
+                <div class="timer-controls">
+                    <button id="start-btn" class="btn primary-btn btn-large">Start</button>
+                    <button id="pause-btn" class="btn default-btn btn-large hidden">Pause</button>
+                    <button id="reset-btn" class="btn default-btn btn-large">Reset</button>
+                </div>
+            </section>
+
+            <section class="tasks-section glass-panel">
+                <div class="task-header">
+                    <h2>Task List</h2>
+                </div>
+                <div class="task-input-wrapper">
+                    <input type="text" id="new-task-input" placeholder="What are you working on?">
+                    <button id="add-task-btn" class="btn primary-btn">Add</button>
+                </div>
+                <ul id="task-list" class="task-list">
+                    <!-- Tasks will be injected here -->
+                </ul>
+            </section>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
