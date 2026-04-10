@@ -26,6 +26,7 @@ class PomodoroApp {
         this.settingsModal = document.getElementById('settings-modal');
         this.focusPromptModal = document.getElementById('focus-prompt-modal');
         this.distractionModal = document.getElementById('distraction-modal');
+        this.focusPromptText = document.getElementById('focus-prompt-text');
         
         // Modal Action Buttons
         this.saveSettingsBtn = document.getElementById('save-settings');
@@ -141,6 +142,14 @@ class PomodoroApp {
                     this.hasCheckedIn = true;
                     this.pauseTimer();
                     this.playNotificationSound();
+                    
+                    const focusedTask = this.tasks.find(t => t.isFocused);
+                    if (focusedTask) {
+                        this.focusPromptText.textContent = `Are you still actively working on: "${focusedTask.text}"?`;
+                    } else {
+                        this.focusPromptText.textContent = `You are halfway through your focus session. Stay focused!`;
+                    }
+
                     this.focusPromptModal.classList.remove('hidden');
                 }
             }
@@ -230,11 +239,21 @@ class PomodoroApp {
     addTask() {
         const text = this.newTaskInput.value.trim();
         if (text) {
-            this.tasks.push({ id: Date.now(), text, completed: false });
+            // First task gets focus automatically
+            const isFirst = this.tasks.length === 0;
+            this.tasks.push({ id: Date.now(), text, completed: false, isFocused: isFirst });
             this.newTaskInput.value = '';
             this.saveTasks();
             this.renderTasks();
         }
+    }
+
+    setFocusTask(id) {
+        this.tasks.forEach(t => {
+            t.isFocused = (t.id === id);
+        });
+        this.saveTasks();
+        this.renderTasks();
     }
 
     toggleTask(id) {
@@ -263,6 +282,7 @@ class PomodoroApp {
             li.className = `task-item ${task.completed ? 'completed' : ''}`;
             
             li.innerHTML = `
+                <button class="focus-task-btn ${task.isFocused ? 'active' : ''}" onclick="app.setFocusTask(${task.id})" aria-label="Set as focus" title="Set as focus task">🎯</button>
                 <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="app.toggleTask(${task.id})">
                 <span onclick="app.toggleTask(${task.id})">${task.text}</span>
                 <button class="delete-task-btn" onclick="app.deleteTask(${task.id})" aria-label="Delete task">✕</button>

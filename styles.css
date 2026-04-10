@@ -291,6 +291,28 @@ input:focus {
     color: var(--danger);
 }
 
+.focus-task-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+    opacity: 0.3;
+    transition: all 0.2s ease;
+    filter: grayscale(100%);
+}
+
+.focus-task-btn:hover {
+    opacity: 0.7;
+    filter: grayscale(50%);
+}
+
+.focus-task-btn.active {
+    opacity: 1;
+    filter: grayscale(0%);
+    transform: scale(1.1);
+}
+
 /* Modals */
 .modal {
     position: fixed;
